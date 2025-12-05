@@ -254,10 +254,34 @@ func (m Model) View() string {
 // ---- View helpers ----
 
 var (
-	titleStyle  = lipgloss.NewStyle().Bold(true)
+	titleStyle = lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("214")) // AoC gold-ish
+
 	headerStyle = lipgloss.NewStyle().Bold(true)
-	errorStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("1"))
-	helpStyle   = lipgloss.NewStyle().Faint(true)
+
+	errorStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("1"))
+
+	helpStyle = lipgloss.NewStyle().Faint(true)
+
+	tableBoxStyle = lipgloss.NewStyle().
+			Border(lipgloss.DoubleBorder()).
+			BorderForeground(lipgloss.Color("#0f0f23")). // AoC deep midnight
+			Padding(1, 2).
+			MarginTop(1)
+
+	tableHeaderRowStyle = lipgloss.NewStyle().
+				Bold(true).
+				Foreground(lipgloss.Color("223")).     // warm light yellow
+				Background(lipgloss.Color("#0f0f23")). // deep midnight
+				Padding(0, 2).
+				MarginBottom(1)
+
+	tableRowStyle = lipgloss.NewStyle().
+			Padding(0, 1).
+			MarginBottom(0).
+			Foreground(lipgloss.Color("252")) // soft off-white
 )
 
 func (m Model) viewConfig() string {
@@ -330,12 +354,15 @@ func (m Model) viewLeaderboard() string {
 		return b.String()
 	}
 
-	fmt.Fprintln(&b, headerStyle.Render(
-		fmt.Sprintf("%4s  %4s  %-8s  %-8s  %-30s",
+	// Build the table with a colored header and subtle alternating rows.
+	var table strings.Builder
+
+	fmt.Fprintln(&table, tableHeaderRowStyle.Render(
+		fmt.Sprintf("%5s   %5s   %-10s   %-10s   %-32s",
 			"Pos", "Pts", "P1", "P2", "Name"),
 	))
+	fmt.Fprintln(&table) // breathing room between header and first row
 
-	// Rows.
 	// Rows.
 	lastPos := -1
 	for _, e := range m.entries {
@@ -358,16 +385,19 @@ func (m Model) viewLeaderboard() string {
 
 		name := truncate(e.Name+" "+strings.Repeat("★", e.StarsToday), 30)
 
-		fmt.Fprintf(
-			&b,
-			"%4s  %4d  %-8s  %-8s  %-30s\n",
+		line := fmt.Sprintf(
+			"%5s   %5d   %-10s   %-10s   %-32s",
 			posStr,
 			e.DayScore,
 			p1,
 			p2,
 			name,
 		)
+
+		fmt.Fprintln(&table, tableRowStyle.Render(line))
 	}
+
+	fmt.Fprintln(&b, tableBoxStyle.Render(strings.TrimRight(table.String(), "\n")))
 
 	fmt.Fprintln(&b)
 	fmt.Fprintln(&b, helpStyle.Render("←/h prev day · →/l next day · d day list · r refresh · q quit"))
