@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
@@ -70,7 +71,12 @@ func New(cfg config.Config, cfgErr error) Model {
 	}
 
 	if cfgErr == nil && cfg.LeaderboardURL != "" {
-		m.state = stateLoading
+		if err := validateLeaderboardURL(cfg.LeaderboardURL); err != nil {
+			m.state = stateConfig
+			m.err = err
+		} else {
+			m.state = stateLoading
+		}
 	} else {
 		m.state = stateConfig
 		if cfgErr != nil && !errors.Is(cfgErr, config.ErrNotFound) {
@@ -161,8 +167,8 @@ func (m Model) updateConfigKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch msg.String() {
 	case "enter":
 		url := strings.TrimSpace(m.textInput.Value())
-		if url == "" {
-			m.err = errors.New("URL cannot be empty")
+		if err := validateLeaderboardURL(url); err != nil {
+			m.err = err
 			return m, nil
 		}
 		m.cfg.LeaderboardURL = url
@@ -446,4 +452,25 @@ func truncate(s string, max int) string {
 		return string(runes[:max])
 	}
 	return string(runes[:max-1]) + "…"
+}
+
+// validateLeaderboardURL ensures the AoC URL is present and contains a view_key.
+func validateLeaderboardURL(raw string) error {
+	if strings.TrimSpace(raw) == "" {
+		return errors.New("URL cannot be empty")
+	}
+	u, err := url.Parse(raw)
+	if err != nil {
+		return fmt.Errorf("invalid URL: %w", err)
+	}
+	if u.Scheme != "https" && u.Scheme != "http" {
+		return errors.New("URL must start with http or https")
+	}
+	if !strings.HasSuffix(u.Path, ".json") || !strings.Contains(u.Path, "/leaderboard/private/view/") {
+		return errors.New("URL should be the private leaderboard JSON link (…/leaderboard/private/view/<id>.json)")
+	}
+	if v := u.Query().Get("view_key"); strings.TrimSpace(v) == "" {
+		return errors.New("URL must include ?view_key=<value>")
+	}
+	return nil
 }
