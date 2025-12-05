@@ -365,7 +365,7 @@ func (m Model) viewLeaderboard() string {
 
 	// Rows.
 	lastPos := -1
-	for _, e := range m.entries {
+	for i, e := range m.entries {
 		p1 := "-"
 		p2 := "-"
 
@@ -383,7 +383,20 @@ func (m Model) viewLeaderboard() string {
 			lastPos = e.Pos
 		}
 
-		name := truncate(e.Name+" "+strings.Repeat("★", e.StarsToday), 30)
+		// Badge: one gold star for part 1, gold burst for both parts.
+		badge := ""
+		if e.StarsToday == 1 {
+			badge = " ✸"
+		} else if e.StarsToday == 2 {
+			badge = " ⭐"
+		}
+
+		name := e.Name + badge
+		// Trophy for the top row, placed after the name.
+		if i == 0 {
+			name += " 🏆"
+		}
+		name = truncate(name, 30)
 
 		line := fmt.Sprintf(
 			"%5s   %5d   %-10s   %-10s   %-32s",
