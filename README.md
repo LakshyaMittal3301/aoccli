@@ -26,3 +26,8 @@ Run `aoccli`. On first launch you’ll be prompted for your private leaderboard 
 Controls: `q` to quit, `←/→` to change days, `d` to open the day list, `r` to refresh.
 
 To update, reinstall via `go install ...@latest` or replace the binary with a newer release download.
+
+### CLI flags
+
+- `-h`/`--help`: show usage and exit.
+- `-reset-config`: delete the saved config file and exit (useful if you need to re-enter the URL).
