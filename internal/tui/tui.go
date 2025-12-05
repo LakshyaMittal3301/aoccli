@@ -66,7 +66,7 @@ func New(cfg config.Config, cfgErr error) Model {
 		cfg:        cfg,
 		cfgErr:     cfgErr,
 		textInput:  ti,
-		currentDay: 1,
+		currentDay: 0, // pick last available day once data loads
 	}
 
 	if cfgErr == nil && cfg.LeaderboardURL != "" {
@@ -123,7 +123,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.leaderboard = msg.lb
 		m.maxDay = aoc.MaxAvailableDay(msg.lb)
 		if m.currentDay < 1 {
-			m.currentDay = 1
+			m.currentDay = m.maxDay
 		}
 		if m.currentDay > m.maxDay {
 			m.currentDay = m.maxDay

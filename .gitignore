@@ -58,3 +58,6 @@ Icon[
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# Go build cache
+.gocache/
