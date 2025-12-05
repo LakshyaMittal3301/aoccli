@@ -330,36 +330,41 @@ func (m Model) viewLeaderboard() string {
 		return b.String()
 	}
 
-	// Table header.
 	fmt.Fprintln(&b, headerStyle.Render(
-		fmt.Sprintf("%4s  %4s  %-8s  %-8s  %-8s  %-30s",
-			"Pos", "Pts", "P1", "P2", "Δ", "Name"),
+		fmt.Sprintf("%4s  %4s  %-8s  %-8s  %-30s",
+			"Pos", "Pts", "P1", "P2", "Name"),
 	))
 
 	// Rows.
+	// Rows.
+	lastPos := -1
 	for _, e := range m.entries {
 		p1 := "-"
 		p2 := "-"
-		delta := "-"
 
 		if e.HasPart1 {
 			p1 = formatDuration(e.Part1Since)
 		}
 		if e.HasPart2 {
 			p2 = formatDuration(e.Part2Since)
-			delta = formatDuration(e.Delta)
+		}
+
+		// Show position only for the first person with that position (ties get blank).
+		posStr := ""
+		if e.Pos != lastPos {
+			posStr = formatPosition(e.Pos)
+			lastPos = e.Pos
 		}
 
 		name := truncate(e.Name+" "+strings.Repeat("★", e.StarsToday), 30)
 
 		fmt.Fprintf(
 			&b,
-			"%4s  %4d  %-8s  %-8s  %-8s  %-30s\n",
-			formatPosition(e.Pos),
+			"%4s  %4d  %-8s  %-8s  %-30s\n",
+			posStr,
 			e.DayScore,
 			p1,
 			p2,
-			delta,
 			name,
 		)
 	}

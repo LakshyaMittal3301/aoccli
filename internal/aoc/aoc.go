@@ -51,7 +51,6 @@ type DayEntry struct {
 	HasPart2   bool
 	Part1Since time.Duration // since release, if HasPart1
 	Part2Since time.Duration // since release, if HasPart2
-	Delta      time.Duration // Part2Since - Part1Since, if HasPart2
 	Pos        int           // rank position (AoC-style, ties share rank)
 }
 
@@ -189,13 +188,6 @@ func BuildDayEntries(lb *Leaderboard, day int) []DayEntry {
 
 		starTime := time.Unix(rec.ts, 0).UTC()
 		e.Part2Since = starTime.Sub(release)
-	}
-
-	// Compute deltas.
-	for _, e := range entriesMap {
-		if e.HasPart1 && e.HasPart2 {
-			e.Delta = e.Part2Since - e.Part1Since
-		}
 	}
 
 	// Move to slice.
