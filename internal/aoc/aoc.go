@@ -141,13 +141,10 @@ func BuildDayEntries(lb *Leaderboard, day int) []DayEntry {
 		}
 	}
 
-	// Sort by completion time ascending for scoring.
 	sort.Slice(p1, func(i, j int) bool { return p1[i].ts < p1[j].ts })
 	sort.Slice(p2, func(i, j int) bool { return p2[i].ts < p2[j].ts })
 
 	entriesMap := make(map[string]*DayEntry, len(lb.Members))
-
-	// Initialize entries for all members (even 0-star ones).
 	for key, m := range lb.Members {
 		entriesMap[key] = &DayEntry{
 			MemberID:   key,
@@ -158,14 +155,19 @@ func BuildDayEntries(lb *Leaderboard, day int) []DayEntry {
 		}
 	}
 
-	// Award points for part 1.
-	n1 := len(p1)
+	// ✅ Correct: N = total members on the board
+	totalMembers := len(lb.Members)
+	if totalMembers == 0 {
+		return []DayEntry{}
+	}
+
+	// Part 1
 	for i, rec := range p1 {
 		e := entriesMap[rec.memberKey]
 		if e == nil {
 			continue
 		}
-		points := n1 - i
+		points := totalMembers - i
 		e.DayScore += points
 		e.StarsToday++
 		e.HasPart1 = true
@@ -174,14 +176,13 @@ func BuildDayEntries(lb *Leaderboard, day int) []DayEntry {
 		e.Part1Since = starTime.Sub(release)
 	}
 
-	// Award points for part 2.
-	n2 := len(p2)
+	// Part 2
 	for i, rec := range p2 {
 		e := entriesMap[rec.memberKey]
 		if e == nil {
 			continue
 		}
-		points := n2 - i
+		points := totalMembers - i
 		e.DayScore += points
 		e.StarsToday++
 		e.HasPart2 = true
